@@ -11,7 +11,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 
 @SpringBootApplication
 @EnableAsync
-@ComponentScan(basePackages = {"kr.co.kccworld.*"})
+@ComponentScan(basePackages = {"kr.co.scrab.*"})
 @EnableScheduling
 public class ScrabApplication {
 

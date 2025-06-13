@@ -204,7 +204,7 @@ com.getLanguage = function(lparam){
 	var orgLanguage = com.getCookie('language') || navigator.language || navigator.userLanguage;
 	orgLanguage = orgLanguage.toLowerCase().substring(0,2);
 	
-	if(orgLanguage== null || orgLanguage == "" || lparam.supportLang.indexOf(orgLanguage) < 0) {
+	if(orgLanguage== null || orgLanguage == "" || (lparam != null && lparam.supportLang.indexOf(orgLanguage) < 0) ) {
 		orgLanguage = lparam.defaultLang;
 	}
 	

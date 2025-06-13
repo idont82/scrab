@@ -13,6 +13,8 @@
 	
 	<link rel="stylesheet" href="https://cdn.datatables.net/2.3.2/css/dataTables.dataTables.css" />
 	<script src="https://cdn.datatables.net/2.3.2/js/dataTables.js"></script>
+	
+	<script src="/js/common.js"></script>
     <style>
     </style>
 </head>
@@ -36,13 +38,18 @@
 		  		<div class="input-group ">
 					<label class="input-group-text" for="inputGroupSelect02">지역</label>
 					<select id="sel_area" class="form-select" id="inputGroupSelect02">
-						<option value="서울">선택...</option>
+						<option value="None">선택...</option>
 						<option value="서울">서울</option>
 						<option value="경기">경기</option>
+						<option value="강남">강남</option>
+						<option value="홍대">홍대</option>
+						<option value="인천">인천</option>
+						<option value="제주도">제주도</option>
+						<option value="부산">부산</option>
 					</select>
 				</div>
 			</div>
-			
+	
 		</div>
 		
 		<table id="myTable" class="display">
@@ -95,6 +102,10 @@
             //alert('선택된 값: ' + selectedValue);
             select();
         });
+            
+        
+        //4)조회
+        select();
     	
     });
     
@@ -105,6 +116,10 @@
     	var pMonth = $('#sel_month').val();
 		
     	let url = '../json/' +pArea+ '_'+ pMonth +'.json';
+    	
+    	if(pArea == "None"){
+    		url = '../json/' +pArea+'.json';
+    	}
     	
     	let columns =[
     		//{ data: null, title : "Num." },
@@ -128,8 +143,17 @@
     	
     
 	    $('#myTable').DataTable( {
-	    	order: [[4, 'desc'],[5, 'desc'],[6, 'desc']],
-	    	paging: false,
+	    	order: [[5, 'desc'],[6, 'desc'],[7, 'desc']],
+	    	layout: {
+	            topStart: {
+	                pageLength: {
+	                    menu: [100, 300, 500, 1000, 2000, 3000, 4000, 5000]
+	                }
+	            },
+	        },
+	        pageLength: 500,
+	        destroy: true,
+	    	paging: true,
 	        ajax: { url : url, dataSrc : ''},
 		    columns: columns,
 		    columnDefs: [

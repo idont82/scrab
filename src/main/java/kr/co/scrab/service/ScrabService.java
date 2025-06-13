@@ -15,10 +15,14 @@ import java.util.Set;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import kr.co.scrab.kccfw.util.FileUtil;
 import kr.co.scrab.kccfw.util.RestCallUtil;
 
+@Service
+@Transactional(rollbackFor = {RuntimeException.class, Exception.class})
 public class ScrabService  {
 	
 	//String coookie = "";
@@ -27,20 +31,46 @@ public class ScrabService  {
 	String filePath = "D:\\kccfw\\workspace_kerp\\scrab\\src\\main\\resources\\static\\json";
 	String fileNm = "";
 	String nowYYmmdd = "";
-
+	String id = "";
+	String pwd = "";
+	
 	JSONArray jsonArr = null;
 	
 	public static void main(String[] arg) throws Exception{
 		
 		ScrabService scrabService = new ScrabService();
-		scrabService.start("서울", "2025", "06", 10000);
-		
-		
-		
+		//scrabService.start("경기", "2025", "06", 10000);
+		//scrabService.start("강남", "2025", "06", 10000);
+		//scrabService.start("홍대", "2025", "06", 10000);
+		//scrabService.start("부산", "2025", "06", 10000);
+		//scrabService.start("인천", "2025", "06", 10000);
+		scrabService.start("제주도", "2025", "06", 10000);
 		//scrabService.land("성동샤르망");
 		
 	}
 	
+	public void scrab(Map<String, Object> params) throws Exception{
+		
+		String area = (String)params.get("area");
+		String yyyymm = (String)params.get("yyyymm");
+		String yyyy = yyyymm.split("_")[0];
+		String mm = yyyymm.split("_")[1];
+		
+		id = (String)params.get("id");
+		pwd = (String)params.get("pwd");
+		 
+		if(id == null || id.equals("")) {
+			throw new Exception("ID empty");
+		}
+		
+		if(pwd == null || pwd.equals("")) {
+			throw new Exception("PWD empty");
+		}
+		
+		start(area, yyyy, mm, 10000);
+		
+	}
+		
 	public void land(String keyword) throws Exception{
 			
 		
@@ -88,8 +118,8 @@ public class ScrabService  {
 		fileNm = keyword + "_"+ yyyy + "_"+  mm+".json";
 		
 		Map<String, Object> mapParam = new HashMap<>();
-		mapParam.put("username", "soccerma@naver.com");
-		mapParam.put("password", "goal5084!");
+		mapParam.put("username", id);
+		mapParam.put("password", pwd);
 		
 		String loginurl =  "https://33m2.co.kr/login/submit";  
 		

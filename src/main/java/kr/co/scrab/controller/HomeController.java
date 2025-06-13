@@ -39,7 +39,6 @@ public class HomeController {
 	ResourceUiService resourceUiService;
 	
 	@Autowired
-	@Qualifier("audeumDataSourceJdbcTemplate")
 	private NamedParameterJdbcTemplate jdbcTemplate;
 	
 	@RequestMapping(value = "/")
