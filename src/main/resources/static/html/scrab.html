@@ -54,11 +54,14 @@
 			<div class="col-auto">
 				<div class="input-group">
 				  <span class="input-group-text" id="basic-addon3">PWD</span>
-				  <input type="text" class="form-control" id="txt_pwd" aria-describedby="basic-addon3 basic-addon4">
+				  <input class="form-control" id="txt_pwd"  type="password"  aria-describedby="basic-addon3 basic-addon4">
 				</div>
 			</div>
 			<div class="col-auto">
 				<button id="btn_scrabCall" type="button" class="btn btn-primary">Scrab</button>
+			</div>
+			<div class="col-auto">
+				<button id="btn_scrabStop" type="button" class="btn btn-danger">Stop</button>
 			</div>
 		</div>
 
@@ -129,7 +132,7 @@
         //3) 스크랩 호출
         $('#btn_scrabCall').click(function() {
 
-         	var options = {  async: false
+         	var options = {  async: true
                     ,submitDoneHandler : function(e){    
                     	com.msgBox.toast("Complate");     
                     }
@@ -153,7 +156,28 @@
 	     	com.execAjax(options, service, param);
         });
         
-   
+   		
+      	//4) 스크랩 스톱
+        $('#btn_scrabStop').click(function() {
+
+         	var options = {  async: true
+                    ,submitDoneHandler : function(e){    
+                    	com.msgBox.toast("Stop");     
+                    }
+                    ,submitErrorHandler : function(e){
+                    	//com.msgBox.alert(e.responseJSON.rsMsg.message);
+                    	
+                    	com.msgBox.alert(e.responseJSON.rsMsg.message);
+                    } 
+	      	};
+	                
+	    	var service = {serviceName : "scrabService",  methodName : "scrabStop", 
+	    	};
+	     
+	     	var param = {};
+	     	
+	     	com.execAjax(options, service, param);
+        });
     	
     });
     

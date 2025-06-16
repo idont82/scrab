@@ -22,10 +22,12 @@ import kr.co.scrab.kccfw.util.FileUtil;
 import kr.co.scrab.kccfw.util.RestCallUtil;
 
 @Service
-@Transactional(rollbackFor = {RuntimeException.class, Exception.class})
+@Transactional(rollbackFor = {RuntimeException.class, Exception.class},  timeout = -1)
 public class ScrabService  {
 	
 	//String coookie = "";
+	
+	public static boolean isStop = false;
 	
 	Map<String, Object> header = new HashMap<String, Object>();
 	String filePath = "D:\\kccfw\\workspace_kerp\\scrab\\src\\main\\resources\\static\\json";
@@ -49,7 +51,9 @@ public class ScrabService  {
 		
 	}
 	
-	public void scrab(Map<String, Object> params) throws Exception{
+	public Map<String,Object> scrab(Map<String, Object> params) throws Exception{
+			
+		Map<String,Object> rtn = new HashMap<String, Object>();
 		
 		String area = (String)params.get("area");
 		String yyyymm = (String)params.get("yyyymm");
@@ -69,6 +73,18 @@ public class ScrabService  {
 		
 		start(area, yyyy, mm, 10000);
 		
+		
+		return rtn;
+		
+	}
+	
+	public Map<String,Object> scrabStop(Map<String, Object> params) {
+		
+		Map<String,Object> rtn = new HashMap<String, Object>();
+		
+		isStop = true;
+		
+		return rtn;
 	}
 		
 	public void land(String keyword) throws Exception{
@@ -135,6 +151,8 @@ public class ScrabService  {
 		//System.out.println(rtn);
 		boolean isOK = true;
 		
+		isStop = false;
+		
 		if(isOK) {
 			if ( (int)rtn.get(RestCallUtil.RESPONSE_CODE) == 200) {
 				
@@ -185,6 +203,9 @@ public class ScrabService  {
 		        JSONArray list = (JSONArray) jsonObj.get("list");
 		        
 		        for(int i = 0; i<list.size(); i++) {
+		        	
+		        	if(isStop) return;
+		        	
 		        	JSONObject o = (JSONObject)list.get(i);
 		        	//System.out.println( i + ":"+o.toJSONString());
 		        	String rid = o.get("rid").toString();
@@ -224,7 +245,7 @@ public class ScrabService  {
 			        				
 			        		//System.out.println(orgJson); 
 			        		
-			        		if(orgDates == null || orgDates.equals("")) {
+			        		if(orgDates == null || orgDates.equals("")|| orgDates.equals("Error")) {
 			        			datesList = dates;
 			        		}else {
 			        			
@@ -262,9 +283,10 @@ public class ScrabService  {
 			        		
 			        		
 			        	}catch(Exception ee) {
+			        		ee.printStackTrace();
 			        		o.put(yyyyDays+""+mmDays+"_"+"days", "Error");
 			        		o.put(yyyyDays+""+mmDays+"_"+"cnt", 0);
-			        		System.out.println(i + ". " + rid + ":"+ee.getMessage());
+			        		System.out.println(i + ". " + rid + ": error : "+ee.getMessage());
 			        	}
 		        	
 		            }
