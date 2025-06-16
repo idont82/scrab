@@ -35,6 +35,7 @@ public class ScrabService  {
 	String nowYYmmdd = "";
 	String id = "";
 	String pwd = "";
+	long sleepMs = 100;
 	
 	JSONArray jsonArr = null;
 	
@@ -291,12 +292,13 @@ public class ScrabService  {
 		        	
 		            }
 		            
-		            Thread.sleep(500);
+		            Thread.sleep(sleepMs);
 		        	
 		        }
 		        
-		        System.out.println(list.toJSONString());
+		        //System.out.println(list.toJSONString());
 		        
+		        System.out.println("Finish");
 		        FileUtil.writeFile(list.toJSONString().getBytes(), fileNm, filePath);
 		        
 				isOK = true;
