@@ -26,8 +26,7 @@
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
 	<script src="https://cdn.datatables.net/buttons/3.2.3/js/buttons.html5.min.js"></script>
 	
-	<script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=33b7cf94c5f4e507b03880a4b29f07f3&libraries=services"></script>
-	
+	<script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=33b7cf94c5f4e507b03880a4b29f07f3&libraries=services,clusterer"></script>
 	
 	<script src="/js/common.js"></script>
 
@@ -64,7 +63,7 @@
                 <ul class="navbar-nav ms-auto">
                     
                     <li class="nav-item"><a class="nav-link" href="#services">Search</a></li>
-                    
+                    <li class="nav-item"><a class="nav-link" href="#div_mapArea">Map</a></li>
                 </ul>
             </div>
         </div>
@@ -80,7 +79,7 @@
             </div>
     </header>
         
-	<div class="container mt-5">
+	<div class="container mt-5   mb-5">
 	  	
 	  	<div class="row g-3 align-items-center mt-5">
 			<span></span>
@@ -129,14 +128,35 @@
 			</table>
 		</div>
 		
+		
+		<div id="div_mapArea" class="row g-3 align-items-center mt-5">
+			<span>예약 건수가 많은 상위 장소를 표시합니다.</span>
+			<div class="input-group ">
+			
+					<label class="input-group-text" for="inputGroupSelectMap">상위 표시 갯수</label>
+					<select id="sel_mapCnt" class="form-select" id="inputGroupSelectMap">
+						<option value="30" >30개</option>
+						<option value="50">50개</option>
+						<option value="100">100개</option>
+						<option value="200">200개</option>
+						<option value="300" selected>300개</option>
+						<option value="400">400개</option>
+						<option value="500">500개</option>
+						<option value="1000">1000개</option>
+					</select>
+			</div>
+		</div>
+
+		
 		<div class="row mt-5">
-			<div id="map" style="width:100%;height:600px;"></div>
+			<div id="map" style="width:100%;height:700px;"></div>
 		</div>
 	</div>
 
   
 	
     <script>
+    
     
     $(document).ready(function() {
     	
@@ -174,6 +194,14 @@
             var selectedValue = $(this).val();
             //alert('선택된 값: ' + selectedValue);
             select();
+        });
+            
+        
+      	//3) MAP 갯수 선택
+        const recentMap = $('#sel_mapCnt');
+        recentMap.change(function() {
+			
+        	mapDraw();
         });
             
         
@@ -257,11 +285,8 @@
 		    				label_last.innerText = first["last_date"];
 		    			}
 		    			
-		    			
-		    			for(var i=0; i<30; i++){
-		    				var dd = tableData.row(i).data();
-		    				searchMap(dd["addr_lot"], dd["room_name"]);
-		    			}
+		    			//맵표시
+		    			mapDraw();
 		    			
 	
 		        	}
@@ -288,36 +313,95 @@
 	// 지도를 생성합니다    
 	var map = new kakao.maps.Map(mapContainer, mapOption); 
 	
+	// 마커 클러스터러를 생성합니다 
+    var clusterer = new kakao.maps.MarkerClusterer({
+        map: map, // 마커들을 클러스터로 관리하고 표시할 지도 객체 
+        averageCenter: true, // 클러스터에 포함된 마커들의 평균 위치를 클러스터 마커 위치로 설정 
+        minLevel: 8 // 클러스터 할 최소 지도 레벨 
+    });
+	
 	// 주소-좌표 변환 객체를 생성합니다
 	var geocoder = new kakao.maps.services.Geocoder();
 	
+	//주소 재사용
+	var tempAddress = {};
+	const KEY = "tempAddress";
+	
 	// 주소로 좌표를 검색합니다
-	function searchMap(address, txt){
+	function searchMap(address, dd, i){
+		
+		var add = tempAddress[address]; 
+		
+		if(add == null){
 
-		geocoder.addressSearch(address, function(result, status) {
+			geocoder.addressSearch(address, function(result, status) {
+				
+			    // 정상적으로 검색이 완료됐으면 
+			     if (status === kakao.maps.services.Status.OK) {
+					
+			    	//임시저장후 재사용
+			    	tempAddress[address] = {"lat" : result[0].y,  "lng" : result[0].x};
+			    	window.localStorage.setItem(KEY, JSON.stringify(tempAddress) );
+			    	
+			        var coords = new kakao.maps.LatLng(result[0].y, result[0].x);
+			
+			        // 결과값으로 받은 위치를 마커로 표시합니다
+			        var marker = new kakao.maps.Marker({
+			            map: map,
+			            position: coords
+			        });
+			
+			        // 인포윈도우로 장소에 대한 설명을 표시합니다
+			        //var infowindow = new kakao.maps.InfoWindow({
+			        //    content: '<div class="badge text-bg-secondary">'+dd["room_name"]+'</div>'
+			        //});
+			        //infowindow.open(map, marker);
+			        
+			         // 클러스터러에 마커들을 추가합니다
+	        		clusterer.addMarker(marker);
+			
+			        // 지도의 중심을 결과값으로 받은 위치로 이동시킵니다
+			        if(i == 0){
+			        	map.setCenter(coords);
+			        }
+			    } 
+			});  
+			
+		}else{
+			console.log("재사용 : " + add);
+			var coords = new kakao.maps.LatLng(add.lat, add.lng);
+				
+		     // 결과값으로 받은 위치를 마커로 표시합니다
+	        var marker = new kakao.maps.Marker({
+	            map: map,
+	            position: coords
+	        });
+		    
+	        clusterer.addMarker(marker); 
+	        
+	        if(i == 0){
+	        	map.setCenter(coords);
+	        }
+		}
 		
-		    // 정상적으로 검색이 완료됐으면 
-		     if (status === kakao.maps.services.Status.OK) {
+	};
+	
+	
+	function mapDraw(){
 		
-		        var coords = new kakao.maps.LatLng(result[0].y, result[0].x);
+		if( window.localStorage.getItem(KEY) != null){
+			tempAddress = JSON.parse(window.localStorage.getItem(KEY));
+		};
 		
-		        // 결과값으로 받은 위치를 마커로 표시합니다
-		        var marker = new kakao.maps.Marker({
-		            map: map,
-		            position: coords
-		        });
 		
-		        // 인포윈도우로 장소에 대한 설명을 표시합니다
-		        var infowindow = new kakao.maps.InfoWindow({
-		            content: '<div style="width:150px;text-align:center;padding:6px 0;">'+txt+'</div>'
-		        });
-		        infowindow.open(map, marker);
-		
-		        // 지도의 중심을 결과값으로 받은 위치로 이동시킵니다
-		        map.setCenter(coords);
-		    } 
-		});    
-		
+		clusterer.clear();
+    	
+		for(var i=0; i<$('#sel_mapCnt').val(); i++){
+			var dd = tableData.row(i).data();
+			searchMap(dd["addr_lot"], dd, i);
+			//console.log(i);
+		}
+
 	};
     
     </script>
