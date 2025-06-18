@@ -317,7 +317,7 @@
     var clusterer = new kakao.maps.MarkerClusterer({
         map: map, // 마커들을 클러스터로 관리하고 표시할 지도 객체 
         averageCenter: true, // 클러스터에 포함된 마커들의 평균 위치를 클러스터 마커 위치로 설정 
-        minLevel: 8 // 클러스터 할 최소 지도 레벨 
+        minLevel: 3 // 클러스터 할 최소 지도 레벨 
     });
 	
 	// 주소-좌표 변환 객체를 생성합니다
@@ -343,49 +343,85 @@
 			    	tempAddress[address] = {"lat" : result[0].y,  "lng" : result[0].x};
 			    	window.localStorage.setItem(KEY, JSON.stringify(tempAddress) );
 			    	
-			        var coords = new kakao.maps.LatLng(result[0].y, result[0].x);
-			
-			        // 결과값으로 받은 위치를 마커로 표시합니다
-			        var marker = new kakao.maps.Marker({
-			            map: map,
-			            position: coords
-			        });
-			
-			        // 인포윈도우로 장소에 대한 설명을 표시합니다
-			        //var infowindow = new kakao.maps.InfoWindow({
-			        //    content: '<div class="badge text-bg-secondary">'+dd["room_name"]+'</div>'
-			        //});
-			        //infowindow.open(map, marker);
-			        
-			         // 클러스터러에 마커들을 추가합니다
-	        		clusterer.addMarker(marker);
-			
-			        // 지도의 중심을 결과값으로 받은 위치로 이동시킵니다
-			        if(i == 0){
-			        	map.setCenter(coords);
-			        }
+			    	clusterMap(dd,  result[0].y,  result[0].x, i);
 			    } 
 			});  
 			
 		}else{
-			console.log("재사용 : " + add);
+			//console.log("재사용 : " + add);
 			var coords = new kakao.maps.LatLng(add.lat, add.lng);
 				
-		     // 결과값으로 받은 위치를 마커로 표시합니다
-	        var marker = new kakao.maps.Marker({
-	            map: map,
-	            position: coords
-	        });
-		    
-	        clusterer.addMarker(marker); 
-	        
-	        if(i == 0){
-	        	map.setCenter(coords);
-	        }
+			clusterMap(dd, add.lat, add.lng, i);
 		}
 		
 	};
 	
+	function clusterMap(dd, lat, lng, i){
+
+		var coords = new kakao.maps.LatLng(lat, lng);
+		
+        // 결과값으로 받은 위치를 마커로 표시합니다
+        var marker = new kakao.maps.Marker({
+            map: map,
+            position: coords,
+            //title : dd["using_fee"]
+        });
+
+        // 인포윈도우로 장소에 대한 설명을 표시합니다
+        //var infowindow = new kakao.maps.InfoWindow({
+        //    content: '<div class="badge text-bg-secondary">'+dd["room_name"] + "(" + dd["using_fee"].toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") +')</div>'
+        //});
+        var infowindow;
+        
+        //infowindow.open(map, marker);
+        kakao.maps.event.addListener(marker, 'mouseover', function() {
+		  	//마커에 마우스오버 이벤트가 발생하면 인포윈도우를 마커위에 표시합니다
+		  	//debugger;
+		  	//같은 주소 찾기
+		  	var content = "";
+        	for(var i=0; i<$('#sel_mapCnt').val(); i++){
+    			var ddss = tableData.row(i).data();
+    			if( ddss["addr_lot"] == dd["addr_lot"] ){
+
+					var c = '<a target="_blank" href="'+"https://33m2.co.kr/room/detail/"+ddss.rid+'"> <div class="badge text-bg-secondary">'+ddss["room_name"] + "(" + ddss["using_fee"].toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") +')</div> </a>';
+					if(content == ""){
+    					content = c;
+					}else{
+						content += "<br>" +c ;
+					}
+    			}
+    			//console.log(i);
+    		}
+        	infowindow = new kakao.maps.InfoWindow({
+               content: content,
+               removable : true,
+            });
+        	
+		    infowindow.open(map, marker);
+		});
+        
+        kakao.maps.event.addListener(marker, 'click', function() {
+  		  // 마커에 마우스오버 이벤트가 발생하면 인포윈도우를 마커위에 표시합니다
+  		  	//debugger;
+  		    //var info = infowindow.open(map, marker);
+        	window.open("https://33m2.co.kr/room/detail/"+dd.rid);
+  		});
+        
+     	// 마커에 마우스아웃 이벤트를 등록합니다
+        kakao.maps.event.addListener(marker, 'mouseout', function() {
+            // 마커에 마우스아웃 이벤트가 발생하면 인포윈도우를 제거합니다
+            //infowindow.close();
+        });
+        
+         // 클러스터러에 마커들을 추가합니다
+		clusterer.addMarker(marker);
+
+        // 지도의 중심을 결과값으로 받은 위치로 이동시킵니다
+        if(i == 0){
+        	map.setCenter(coords);
+        }
+        
+	};
 	
 	function mapDraw(){
 		
