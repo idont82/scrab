@@ -140,6 +140,7 @@ public class ScrabService  {
 		
 		String loginurl =  "https://33m2.co.kr/login/submit";  
 		
+		header = new HashMap<String, Object>();
 		
 		//Map<String, Object> header = new HashMap<String, Object>();
 		header.put("Host","33m2.co.kr");
@@ -183,11 +184,12 @@ public class ScrabService  {
 			mapParam.put("itemcount", itemcount);
 			mapParam.put("by_location", true);
 			mapParam.put("map_level", 7);
-			//mapParam.put("now_page", 2);
-			//mapParam.put("north_east_lng",			127.12148149946958);
-			//mapParam.put("north_east_lat",			37.54226551618598);
-			//mapParam.put("south_west_lng",			126.84688572359362);
-			//mapParam.put("south_west_lat",			37.42906219802213);
+			mapParam.put("now_page", 1);
+			//mapParam.put("by_location", 	true);
+			//mapParam.put("north_east_lng",			127.12179875341975);
+			//mapParam.put("north_east_lat",			37.54252647912777);
+			//mapParam.put("south_west_lng",			126.84720154330276);
+			//mapParam.put("south_west_lat",			37.42932390134193);
 			
 			rtn = call(url, mapParam, header);
 			

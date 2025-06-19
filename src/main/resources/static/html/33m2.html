@@ -211,6 +211,9 @@
     });
     
     
+    const MONTH_CNT = 3; //3개월
+	let months = [];
+    
     select = function(){
 	
     	var pArea = $('#sel_area').val();
@@ -235,8 +238,7 @@
 	        { data: 'using_fee', title :"가격" , type:"num" },
 	        //{ data: 'last_date', title :"업데이트"  }
 	    ]
-    	const MONTH_CNT = 3; //3개월
-    	let months = [];
+    	
     	
     	for(var i=0; i<MONTH_CNT;i++){
     		let now = new Date();
@@ -380,10 +382,15 @@
 		  	//같은 주소 찾기
 		  	var content = "";
         	for(var i=0; i<$('#sel_mapCnt').val(); i++){
-    			var ddss = tableData.row(i).data();
+    			var ddss = tableData.row(":eq("+i+")").data();
     			if( ddss["addr_lot"] == dd["addr_lot"] ){
 
-					var c = '<a target="_blank" href="'+"https://33m2.co.kr/room/detail/"+ddss.rid+'"> <div class="badge text-bg-secondary">'+ddss["room_name"] + "(" + ddss["using_fee"].toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") +')</div> </a>';
+					var c = '<a target="_blank" href="'+"https://33m2.co.kr/room/detail/"+ddss.rid
+					+'"> <div class="badge text-bg-secondary">'+ddss["room_name"] 
+					+ '<br>\\' + ddss["using_fee"].toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") +''
+					+ ' [에약: ' +   (ddss[months[0]] + ddss[months[1]] + ddss[months[2]]) + '일]'
+					+'</div> </a>';
+					
 					if(content == ""){
     					content = c;
 					}else{
@@ -433,9 +440,9 @@
 		clusterer.clear();
     	
 		for(var i=0; i<$('#sel_mapCnt').val(); i++){
-			var dd = tableData.row(i).data();
+			var dd = tableData.row(":eq("+i+")").data();
 			searchMap(dd["addr_lot"], dd, i);
-			//console.log(i);
+			//console.log(dd["addr_lot"]);
 		}
 
 	};
