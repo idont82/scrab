@@ -130,23 +130,47 @@
 		
 		
 		<div id="div_mapArea" class="row g-3 align-items-center mt-5">
-			<span>예약 건수가 많은 상위 장소를 표시합니다.</span>
-			<div class="input-group ">
-			
-					<label class="input-group-text" for="inputGroupSelectMap">상위 표시 갯수</label>
-					<select id="sel_mapCnt" class="form-select" id="inputGroupSelectMap">
-						<option value="30" >30개</option>
-						<option value="50">50개</option>
-						<option value="100">100개</option>
-						<option value="200">200개</option>
-						<option value="300" selected>300개</option>
-						<option value="400">400개</option>
-						<option value="500">500개</option>
-						<option value="1000">1000개</option>
-					</select>
+			<span>최초 예약 일수가 많은 상위 장소를 표시합니다. (아래 조회는 위 표에서 보이는 데이터 기준으로 조회됩니다.)</span>
+		</div>
+		
+		<div id="div_mapArea" class="row g-3 align-items-center mt-2">
+			<div  class="col-auto">
+				<div class="input-group ">
+				
+						<label class="input-group-text" for="inputGroupSelectMap">위 표의 상위 </label>
+						<select id="sel_mapCnt" class="form-select" id="inputGroupSelectMap">
+							<option value="30" >30개</option>
+							<option value="50">50개</option>
+							<option value="100">100개</option>
+							<option value="200">200개</option>
+							<option value="300" selected>300개</option>
+							<option value="400">400개</option>
+							<option value="500">500개</option>
+							<option value="1000">1000개</option>
+						</select>
+						<button id="btn_search" type="button" class="btn btn-warning">조회</button>
+				</div>
+			</div>
+			<div  class="col-auto">
+				<div class="input-group ">
+				
+						<label class="input-group-text" for="inputGroupSelectMap2">예약 일수 이상 </label>
+						<select id="sel_mapCnt2" class="form-select" id="inputGroupSelectMap2">
+							<option value="10">10일</option>
+							<option value="20">20일</option>
+							<option value="30">30일</option>
+							<option value="40">40일</option>
+							<option value="50">50일</option>
+							<option value="60">60일</option>
+							<option value="70" selected>70일</option>
+							<option value="80">80일</option>
+							<option value="90">90일</option>
+						</select>
+						<button id="btn_search2" type="button" class="btn btn-warning">조회</button>
+				</div>
 			</div>
 		</div>
-
+		
 		
 		<div class="row mt-5">
 			<div id="map" style="width:100%;height:700px;"></div>
@@ -154,9 +178,29 @@
 	</div>
 
   
+  	<!-- toast -->
+  	<div class="toast-container position-fixed bottom-0 end-0 p-3">
+	  <div id="liveToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="10000">
+	    <div class="toast-header">
+	      <svg aria-hidden="true" class="bd-placeholder-img rounded me-2" height="20" preserveAspectRatio="xMidYMid slice" width="20" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#007aff"></rect></svg>
+	      <strong class="me-auto">Message</strong>
+	      <!--<small>11 mins ago</small>-->
+	      <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+	    </div>
+	    <div class="toast-body">
+	    </div>
+	  </div>
+	</div>
 	
     <script>
     
+    const toastLive = document.getElementById('liveToast');
+    const toastBootstrap  = bootstrap.Toast.getOrCreateInstance(toastLive);
+    
+    toastMsg = function(str){
+		$('.toast-body').text(str);
+		toastBootstrap.show();
+    }	
     
     $(document).ready(function() {
     	
@@ -200,10 +244,18 @@
       	//3) MAP 갯수 선택
         const recentMap = $('#sel_mapCnt');
         recentMap.change(function() {
-			
-        	mapDraw();
+        	mapDraw("top");
         });
-            
+        //상위 조회
+        $('#btn_search').click(function() {mapDraw("top");});
+        
+        
+        const recentMap = $('#sel_mapCnt2');
+        recentMap.change(function() {
+        	mapDraw("days");
+        });
+        //에약일수 이상 조회
+        $('#btn_search2').click(function() {mapDraw("days");});
         
         //4)조회
         select();
@@ -325,12 +377,15 @@
 	// 주소-좌표 변환 객체를 생성합니다
 	var geocoder = new kakao.maps.services.Geocoder();
 	
+	var infowindowArr = new Array();
+	var isCenter = false; //센터표시 
+	
 	//주소 재사용
 	var tempAddress = {};
 	const KEY = "tempAddress";
 	
 	// 주소로 좌표를 검색합니다
-	function searchMap(address, dd, i){
+	function searchMap(address, dd){
 		
 		var add = tempAddress[address]; 
 		
@@ -345,7 +400,7 @@
 			    	tempAddress[address] = {"lat" : result[0].y,  "lng" : result[0].x};
 			    	window.localStorage.setItem(KEY, JSON.stringify(tempAddress) );
 			    	
-			    	clusterMap(dd,  result[0].y,  result[0].x, i);
+			    	clusterMap(dd,  result[0].y,  result[0].x);
 			    } 
 			});  
 			
@@ -353,12 +408,12 @@
 			//console.log("재사용 : " + add);
 			var coords = new kakao.maps.LatLng(add.lat, add.lng);
 				
-			clusterMap(dd, add.lat, add.lng, i);
+			clusterMap(dd, add.lat, add.lng);
 		}
 		
 	};
 	
-	function clusterMap(dd, lat, lng, i){
+	function clusterMap(dd, lat, lng){
 
 		var coords = new kakao.maps.LatLng(lat, lng);
 		
@@ -373,6 +428,7 @@
         //var infowindow = new kakao.maps.InfoWindow({
         //    content: '<div class="badge text-bg-secondary">'+dd["room_name"] + "(" + dd["using_fee"].toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") +')</div>'
         //});
+        
         var infowindow;
         
         //infowindow.open(map, marker);
@@ -381,8 +437,12 @@
 		  	//debugger;
 		  	//같은 주소 찾기
 		  	var content = "";
-        	for(var i=0; i<$('#sel_mapCnt').val(); i++){
-    			var ddss = tableData.row(":eq("+i+")").data();
+		  	var searchRows =  tableData.rows({ filter : 'applied'}).data();
+		  	
+        	for(var i=0; i<searchRows.length; i++){
+    			//var ddss = tableData.row(":eq("+i+")").data();
+    			var ddss = searchRows[i];
+    			if(ddss == null ) break;
     			if( ddss["addr_lot"] == dd["addr_lot"] ){
 
 					var c = '<a target="_blank" href="'+"https://33m2.co.kr/room/detail/"+ddss.rid
@@ -405,6 +465,8 @@
             });
         	
 		    infowindow.open(map, marker);
+		    
+		    infowindowArr.push(infowindow);
 		});
         
         kakao.maps.event.addListener(marker, 'click', function() {
@@ -424,28 +486,69 @@
 		clusterer.addMarker(marker);
 
         // 지도의 중심을 결과값으로 받은 위치로 이동시킵니다
-        if(i == 0){
+        if(isCenter){
         	map.setCenter(coords);
+        	isCenter = false;
         }
         
 	};
 	
-	function mapDraw(){
+	function mapDraw(type){
 		
 		if( window.localStorage.getItem(KEY) != null){
 			tempAddress = JSON.parse(window.localStorage.getItem(KEY));
 		};
 		
+		//map = new kakao.maps.Map(mapContainer, mapOption); 
+		isCenter = true;
 		
 		clusterer.clear();
-    	
+		//if(infowindow!=null)infowindow.close();
+		for(var i=0; i<infowindowArr.length; i++ ){
+			infowindowArr[i].close();
+		}
+		
+		var searchRows =  tableData.rows({ filter : 'applied'}).data();
+		
+		if(type == null || type == "top"){
+
+			for(var i=0; i<$('#sel_mapCnt').val(); i++){
+				var dd = searchRows[i];
+				if(dd == null ) break;
+				searchMap(dd["addr_lot"], dd);
+				//console.log(dd["addr_lot"]);
+			}
+			
+		}else if(type == "days"){
+
+			var length = searchRows.length;
+			var cnt = 0;
+			for(var i=0; i< length; i++){
+				var dd = searchRows[i];
+				var dayCnt = dd[months[0]] + dd[months[1]] + dd[months[2]] ;
+				
+				if( dayCnt >= parseInt($('#sel_mapCnt2').val()) ){
+					searchMap(dd["addr_lot"], dd);
+					cnt++;
+				}
+				toastMsg(cnt + "건이 조회되었습니다."); 
+				//com.msgBox.toast(cnt + "건이 조회되었습니다."); 
+				//console.log(dd["addr_lot"]);
+			}
+			
+			
+		}
+		
+		/*
 		for(var i=0; i<$('#sel_mapCnt').val(); i++){
 			var dd = tableData.row(":eq("+i+")").data();
 			searchMap(dd["addr_lot"], dd, i);
 			//console.log(dd["addr_lot"]);
 		}
+		*/
 
 	};
+
     
     </script>
 </body>
